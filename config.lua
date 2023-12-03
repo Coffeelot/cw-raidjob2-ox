@@ -10,7 +10,7 @@ Config.UseMZSkills = false
 Config.Skill = 'Street Reputation'
 Config.SkillAmount = 0
 
-Config.UseRenewedPhoneGroups = true
+Config.UseRenewedPhoneGroups = false
 Config.MaxGroupSize = 4 -- only used if UseRenewedPhoneGroups is true
 Config.SpawnDistance = 400
 
@@ -525,7 +525,7 @@ local lowJob = {
     highTime = 60000,
     token = 'raidlow',
     description = 'Get Information.',
-    minimumPolice = 1,
+    minimumPolice = 0,
     minLimit = 175, -- used for mz-skill check if enabled
     icon = 'fas fa-skull',
     Minigame = {

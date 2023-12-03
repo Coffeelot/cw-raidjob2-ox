@@ -107,6 +107,7 @@ end
 
 local function hasContent(object, diff)
     local items = exports.ox_inventory:Search('count', object , { diff = diff } )
+    if useDebug then print('Has loot to drop off:', items>0 ) end
     return items > 0
 end
 
@@ -120,6 +121,12 @@ local function canInteract(diff)
         hasToken = exports['cw-tokens']:hasToken(Config.Jobs[diff].token)
     end
 
+    if useDebug then 
+        print('Interact check:')
+        print('has skills:', hasSkills)
+        print('has token:', hasToken)
+        print('hasCops', hasCops)
+    end
     return hasSkills and hasToken and hasCops
 end
 
@@ -147,8 +154,9 @@ CreateThread(function()
                 diff = diff,
                 icon = job.icon,
                 label = Config.Jobs[diff].description,
+                distance = 2.5,
                 canInteract = function()
-                if not Config.Enabled then return false end
+                    if not Config.Enabled then return false end
                     return canInteract(diff)
                 end
             },
@@ -157,8 +165,9 @@ CreateThread(function()
                 event = "cw-raidjob2:client:cancelJob",
                 icon = "fas fa-times",
                 label = Lang:t('info.cancel_job'),
+                distance = 2.5,
                 canInteract = function()
-                if not Config.Enabled then return false end
+                    if not Config.Enabled then return false end
                     return onRun
                 end
             },
@@ -168,16 +177,14 @@ CreateThread(function()
                 diff = diff,
                 icon = 'fas fa-hand-holding-usd',
                 label = Lang:t('info.turn_in_goods'),
+                distance = 2.5,
                 canInteract = function()
-                if not Config.Enabled then return false end
+                    if not Config.Enabled then return false end
                     return canInteract(diff) and hasContent(Config.Items.caseContent, diff)
                 end
             }
         }
-        exports['qb-target']:AddTargetEntity(currentBoss, {
-            options = options,
-            distance = 2.0
-        })
+        exports.ox_target:addLocalEntity(currentBoss, options)
     end
 end)
 
@@ -411,7 +418,7 @@ local function giveKey(ped)
     CreateThread(function()
         local NPC = NetworkGetEntityFromNetworkId(ped)
         CurrentJob.keyTaken = false
-        print("KEY IS SUPPOSED TO BE ON ", ped, "ENTITY ", NPC)
+        if useDebug then print("KEY IS SUPPOSED TO BE ON ", ped, "ENTITY ", NPC) end
         CurrentJob.pedThatHasKey = ped
         while not DoesEntityExist(NPC) do
             Wait(100)
@@ -445,13 +452,12 @@ local function giveKey(ped)
         }
 
         exports.ox_target:addEntity(ped, keyOptions)
-        print("KEY Given")
     end)
 
 end
 
 local function setStats(ped, netid, stats)
-    print("SETTING STATS FOR ", ped, netid)
+    if useDebug then print("SETTING STATS FOR ", ped, netid) end
     SetEntityAsMissionEntity(ped)
     SetPedAccuracy(ped, stats.accuracy)
     SetPedCanSwitchWeapon(ped, true)
@@ -471,14 +477,14 @@ RegisterNetEvent('cw-raidjob2:client:setRelationsAndStats', function(npc, npcSta
     end
     Wait(3000)
     for networkId, v in pairs(npc[GuardPopGroup]) do
-        print("TRYING TO SET ", networkId)
+        if useDebug then print("TRYING TO SET ", networkId) end
         local entity = NetworkGetEntityFromNetworkId(networkId)
         while not DoesEntityExist(entity) do
             Wait(1)
         end
 
         SetPedRelationshipGroupHash(entity, guardGroupHash)
-        print(entity, networkId, npcStats[networkId])
+        if useDebug then print(entity, networkId, npcStats[networkId]) end
         setStats(entity, networkId, npcStats[networkId])
         Entities[#Entities+1] = entity
         local random = math.random(1, 2)
@@ -665,7 +671,7 @@ local function MinigameSuccess()
         disableCarMovement = true,
         disableMouse = false,
         disableCombat = true,
-    }, {z
+    }, {
     }, {}, {}, function() -- Done
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
         TriggerServerEvent('cw-raidjob2:server:grabCase', CurrentJob.jobId, CurrentCops)
