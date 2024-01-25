@@ -1,5 +1,7 @@
 # Raidjob 2 for OX
-> This variant of Raidjob2 is ONLY for if you're using Ox lib and inventory. Works better for Ox than the normal Raidjob2, but lacks QB-inv support entirely, and requires oxlib. 
+### ⭐ Check out our [Tebex store](https://cw-scripts.tebex.io/category/2523396) for some cheap scripts ⭐
+
+> This variant of Raidjob2 is ONLY for if you're using Ox lib and inventory. Works better for Ox than the normal Raidjob2, but lacks QB-inv support entirely, and requires oxlib. Fixes alot of issues tho, and this variant might get updates.
 
 A QB based script that is more of a system than a plug and play job script. To utilize this script to it's fullest you need to be able to at least do some Config devving, if that's to much then go find another script ✌ This script comes with several npcs and pre made locations and jobs to do, but the idea of it is for YOU to create your own jobs! The Config comes full off comments to guide you.
 
