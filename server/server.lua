@@ -7,7 +7,7 @@ local GuardPopGroup = 'RaidGuardGroup'
 local CivPopGroup = 'RaidCivGroup'
 
 -- Globals
-local Cooldown = false
+local Cooldowns = {}
 local ActiveJobs = {}
 --[[
     ActiveJobs = {
@@ -26,6 +26,22 @@ local Npcs = {
     ['RaidGuardGroup'] = {},
     ['RaidCivGroup'] = {}
 }
+
+-- cool down for job
+local function cooldown(location)
+    if useDebug then
+        print('STARTING COOLDOWN', location)
+    end
+    Cooldowns[location] = true
+    local timer = Config.Cooldown * 1000
+    SetTimeout(timer, function()
+        Cooldowns[location] = false
+    end)
+end
+
+QBCore.Functions.CreateCallback("cw-raidjob2:server:getCooldowns", function(source, cb)
+    cb(Cooldowns)
+end)
 
 -- == Start == --
 local function verifyIsLeader(src)
@@ -188,7 +204,7 @@ RegisterServerEvent('cw-raidjob2:server:start', function(jobDiff, jobLocation)
                     if activateRun(src, jobDiff, jobLocation) then
                         Player.Functions.RemoveMoney('cash', runCost)
                         TriggerClientEvent('QBCore:Notify', src, Lang:t("success.payment_success"), 'success')
-                        TriggerEvent('cw-raidjob2:server:coolout', src)
+                        cooldown(jobLocation)
                     end
                 else
                     TriggerClientEvent('QBCore:Notify', source, Lang:t("error.you_dont_have_enough_money"), 'error')
@@ -198,7 +214,7 @@ RegisterServerEvent('cw-raidjob2:server:start', function(jobDiff, jobLocation)
                     if activateRun(src, jobDiff, jobLocation) then
                     Player.Functions.RemoveMoney('bank', runCost)
                     TriggerClientEvent('QBCore:Notify', src, Lang:t("success.payment_success"), 'success')
-                    TriggerEvent('cw-raidjob2:server:coolout', src)
+                    cooldown(jobLocation)
                     end
                 else
                     TriggerClientEvent('QBCore:Notify', source, Lang:t("error.you_dont_have_enough_money"), 'error')
@@ -209,7 +225,7 @@ RegisterServerEvent('cw-raidjob2:server:start', function(jobDiff, jobLocation)
                         if activateRun(src, jobDiff, jobLocation) then
                             exports['qb-phone']:RemoveCrypto(src, Config.CryptoType, runCost)
                             TriggerClientEvent('QBCore:Notify', src, Lang:t("success.payment_success"), 'success')
-                            TriggerEvent('cw-raidjob2:server:coolout', src)
+                            cooldown(jobLocation)
                         end
                     else
                         TriggerClientEvent('QBCore:Notify', source, Lang:t("error.you_dont_have_enough_money"), 'error')
@@ -219,7 +235,7 @@ RegisterServerEvent('cw-raidjob2:server:start', function(jobDiff, jobLocation)
                         if activateRun(src, jobDiff, jobLocation) then
                             Player.Functions.RemoveMoney('crypto', tonumber(runCost))
                             TriggerClientEvent('QBCore:Notify', src, Lang:t("success.payment_success"), 'success')
-                            TriggerEvent('cw-raidjob2:server:coolout', src)
+                            cooldown(jobLocation)
                         end
                     else
                         TriggerClientEvent('QBCore:Notify', source, Lang:t("error.you_dont_have_enough_money"), 'error')
@@ -665,22 +681,6 @@ end)
 QBCore.Functions.CreateUseableItem(Config.Items.caseItem, function(source, item)
     if useDebug then print("USING ITEM : ", item.metadata.diff, item.metadata.jobID, item.metadata.copsOnline) end
     TriggerClientEvent('cw-raidjob2:client:attemtpToUnlockCase', source, item.metadata.diff, item.metadata.jobID,  item.metadata.copsOnline)
-end)
-
--- cool down for job
-RegisterServerEvent('cw-raidjob2:server:coolout', function()
-    if useDebug then
-        print('STARTING COOLDOWN')
-    end
-    Cooldown = true
-    local timer = Config.Cooldown * 1000
-    SetTimeout(timer, function()
-        Cooldown = false
-    end)
-end)
-
-QBCore.Functions.CreateCallback("cw-raidjob2:server:isInCooldown", function(source, cb)
-    cb(Cooldown)
 end)
 
 RegisterServerEvent('cw-raidjob2:server:cancelJob', function(jobId)

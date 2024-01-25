@@ -567,18 +567,25 @@ RegisterNetEvent('cw-raidjob2:client:runactivate', function(jobId, jobDiff, jobL
     checkDistance()
 end)
 
-local function getTableLength(diff)
+local function getTableLength(table)
     local count = 0
-    for i, v in pairs(Config.Locations[diff]) do
+    for i, v in pairs(table) do
         count = count+1
     end
     return count
 end
 
-local function generateNameList(diff)
+local function generateNameList(diff, cooldowns)
     local names = {}
+    if useDebug then print('generating name list') end
     for i, v in pairs(Config.Locations[diff]) do
-        names[#names+1] = i
+        if useDebug then print('-- location', i) end
+        if not cooldowns[i] then
+            if useDebug then print('adding location') end
+            names[#names+1] = i
+        else
+            if useDebug then print('this location was in cooldown') end
+        end
     end
     return names
 end
@@ -586,36 +593,36 @@ end
 RegisterNetEvent('cw-raidjob2:client:attemptStart', function (data)
     if useDebug then
         print('Starting raid with diff', data.diff)
-        print('Amount of locations for this level:',  getTableLength(data.diff))
+        print('Amount of locations for this level:',  getTableLength(Config.Locations[data.diff]))
     end
 
-    CurrentJob = Config.Jobs[data.diff]
-    local nameList = generateNameList(data.diff)
-    local rand = nameList[math.random(#nameList)]
-    CurrentJob.jobLocationName = rand
-    if useDebug then
-       print('Randomly selected location:', CurrentJob.jobLocationName)
-    end
-
-    QBCore.Functions.TriggerCallback("cw-raidjob2:server:isInCooldown",function(isCooldown)
-        if not isCooldown then
-            TriggerEvent('animations:client:EmoteCommandStart', {"idle11"})
-            QBCore.Functions.Progressbar("start_job", Lang:t('info.talking_to_boss'), Config.BossTalkTime , false, true, {
-                disableMovement = true,
-                disableCarMovement = true,
-                disableMouse = false,
-                disableCombat = true,
-            }, {
-            }, {}, {}, function() -- Done
-                TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-                TriggerServerEvent('cw-raidjob2:server:start', data.diff, CurrentJob.jobLocationName)
-            end, function() -- Cancel
-                TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-                QBCore.Functions.Notify(Lang:t("error.canceled"), 'error')
-            end)
-        else
-            QBCore.Functions.Notify(Lang:t("error.someone_recently_did_this"), 'error')
+    QBCore.Functions.TriggerCallback("cw-raidjob2:server:getCooldowns",function(cooldowns)
+        CurrentJob = Config.Jobs[data.diff]
+        local nameList = generateNameList(data.diff, cooldowns)
+        if #nameList == 0 then
+            QBCore.Functions.Notify(Lang:t('error.someone_recently_did_this'), 'error')
+            return
         end
+        local rand = nameList[math.random(#nameList)]
+        CurrentJob.jobLocationName = rand
+        if useDebug then
+           print('Randomly selected location:', CurrentJob.jobLocationName)
+        end
+    
+        TriggerEvent('animations:client:EmoteCommandStart', {"idle11"})
+        QBCore.Functions.Progressbar("start_job", Lang:t('info.talking_to_boss'), Config.BossTalkTime , false, true, {
+            disableMovement = true,
+            disableCarMovement = true,
+            disableMouse = false,
+            disableCombat = true,
+        }, {
+        }, {}, {}, function() -- Done
+            TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+            TriggerServerEvent('cw-raidjob2:server:start', data.diff, CurrentJob.jobLocationName)
+        end, function() -- Cancel
+            TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+            QBCore.Functions.Notify(Lang:t("error.canceled"), 'error')
+        end)
     end)
 end)
 

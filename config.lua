@@ -1,7 +1,7 @@
 Config = {}
 
-Config.Debug = false
-Config.Enabled = true
+Config.Debug = false -- if you got issues. Enable this and try following the prints in the code
+Config.Enabled = true -- enable or disable interactions
 Config.CleanupTimer = 20000
 
 Config.UseTokens = false
