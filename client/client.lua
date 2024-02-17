@@ -363,9 +363,6 @@ local function caseAquiredMessage()
 	})
 
     QBCore.Functions.Notify(Lang:t("success.caseAquired"), 'success')
-    SetTimeout(Config.Jobs[CurrentJob.jobDiff].timer, function()
-        RemoveBlip(policeBlip)
-    end)
 end
 -- CASE
 
@@ -531,7 +528,7 @@ local function checkDistance()
             if(distance < Config.SpawnDistance) then
                 if useDebug then print('spawning enemies') end
                     TriggerServerEvent('cw-raidjob2:server:spawn', CurrentJob.jobId, CurrentJob.jobDiff, CurrentJob.jobLocationName)
-                    TriggerServerEvent('cw-raidjob2:server:UpdateStage', CurrentJob.jobId)
+                    if Config.UseRenewedPhoneGroups then TriggerServerEvent('cw-raidjob2:server:UpdateStage', CurrentJob.jobId) end
                 break
             end
             Wait(1000)				-- mandatory wait
@@ -668,6 +665,7 @@ local function caseGrabbed()
             caseIsUnlockedMessage(diff)
         end
         TriggerServerEvent('cw-raidjob2:server:tracker', CurrentJob.jobId)
+        RemoveBlip(policeBlip)
     end)
 end
 
